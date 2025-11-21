@@ -4,6 +4,14 @@
 
 {% block content %}
 <h2>Bienvenido a la Página Principal</h2>
+
+<h3>Formulario de Saludo</h3>
+<form method="GET" action="/saludo">
+    <label for="nombre">Ingresa tu nombre:</label>
+    <input type="text" id="nombre" name="nombre" required>
+    <button type="submit">Enviar</button>
+</form>
+
 <p>Selecciona una de las siguientes opciones:</p>
 <ul class="lista-rutas">
     <li><a href="/perfil">Ver Perfil</a></li>
