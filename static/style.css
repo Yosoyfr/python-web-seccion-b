@@ -48,3 +48,8 @@ footer {
     flex-direction: column;
     gap: 10px;
 }
+
+.error-message {
+    color: red;
+    text-align: center;
+}

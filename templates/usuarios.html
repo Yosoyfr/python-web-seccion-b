@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios{% endblock %}
+
+{% block content %}
+<h2>Registro de Usuarios</h2>
+
+<form method="POST" action="{{ url_for('usuarios') }}">
+    <label for="nombre">Nombre de Usuario:</label>
+    <input type="text" id="nombre" name="nombre" required>
+
+    <label for="email">Correo Electrónico:</label>
+    <input type="email" id="email" name="email" required>
+
+    <button type="submit">Registrar</button>
+</form>
+
+<hr>
+
+<h3>Lista de Usuarios Registrados</h3>
+{% if usuarios %}
+<ul>
+    {% for usuario in usuarios %}
+    <li>{{ usuario.nombre }} - {{ usuario.email }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No hay usuarios registrados.</p>
+{% endif %}
+{% endblock %}
