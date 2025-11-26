@@ -8,6 +8,7 @@ from flask import (
     make_response,
 )
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 # Create a Flask application instance
 app = Flask(__name__)
@@ -16,6 +17,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 # Modelos de ejemplo
@@ -23,6 +25,7 @@ class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    edad = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return f"<Usuario {self.nombre}>"
@@ -39,18 +42,49 @@ def home():
     return render_template("index.html")
 
 
+# CRUD - CREATE, READ, UPDATE, DELETE
+
+
 @app.route("/usuarios", methods=["GET", "POST"])
 def usuarios():
     if request.method == "POST":
         nombre = request.form.get("nombre")
         email = request.form.get("email")
+        # INSERT nuevo usuario en la base de datos
         nuevo_usuario = Usuario(nombre=nombre, email=email)
         db.session.add(nuevo_usuario)
         db.session.commit()
         return redirect(url_for("usuarios"))
 
+    # SELECT * FROM usuarios
     usuarios = Usuario.query.all()
     return render_template("usuarios.html", usuarios=usuarios)
+
+
+@app.route("/editar/<int:id>", methods=["GET", "POST"])
+def editar(id):
+    usuario = Usuario.query.get_or_404(id)
+
+    if request.method == "POST":
+        usuario.nombre = request.form.get("nombre")
+        usuario.email = request.form.get("email")
+        db.session.commit()
+        return redirect(url_for("usuarios"))
+    return render_template("editar_usuario.html", usuario=usuario)
+
+
+@app.route("/eliminar/<int:id>")
+def eliminar(id):
+    usuario = Usuario.query.get_or_404(id)
+    db.session.delete(usuario)
+    db.session.commit()
+    return redirect(url_for("usuarios"))
+
+
+@app.route("/buscar/<int:id>", methods=["GET"])
+def buscar(id):
+    usuario = Usuario.query.get_or_404(id)
+    return f"Usuario encontrado: {usuario.nombre} ({usuario.email})"
 
 
 ##################################################################

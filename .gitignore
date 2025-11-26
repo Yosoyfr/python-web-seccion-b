@@ -7,3 +7,7 @@ __pycache__/
 .vscode/
 node_modules/
 **/database.db
+
+# Mantener solo versiones de migraciones
+
+

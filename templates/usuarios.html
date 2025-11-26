@@ -3,7 +3,7 @@
 {% block title %}Usuarios{% endblock %}
 
 {% block content %}
-<h2>Registro de Usuarios</h2>
+<h2>Gestion de usuarios (CRUD)</h2>
 
 <form method="POST" action="{{ url_for('usuarios') }}">
     <label for="nombre">Nombre de Usuario:</label>
@@ -17,13 +17,27 @@
 
 <hr>
 
-<h3>Lista de Usuarios Registrados</h3>
+<h3>Lista de Usuarios Registrados:</h3>
 {% if usuarios %}
-<ul>
+<table border="1" cellpadding="8">
+    <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Acciones</th>
+    </tr>
     {% for usuario in usuarios %}
-    <li>{{ usuario.nombre }} - {{ usuario.email }}</li>
+    <tr>
+        <td>{{ usuario.id }}</td>
+        <td>{{ usuario.nombre }}</td>
+        <td>{{ usuario.email }}</td>
+        <td>
+            <a href="{{ url_for('editar', id=usuario.id) }}">Editar</a> |
+            <a href="{{ url_for('eliminar', id=usuario.id) }}">Eliminar</a>
+        </td>
+    </tr>
     {% endfor %}
-</ul>
+</table>
 {% else %}
 <p>No hay usuarios registrados.</p>
 {% endif %}
