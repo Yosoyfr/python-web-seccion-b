@@ -9,6 +9,7 @@ from flask import (
 )
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Create a Flask application instance
 app = Flask(__name__)
@@ -26,6 +27,7 @@ class Usuario(db.Model):
     nombre = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     edad = db.Column(db.Integer, nullable=True)
+    password = db.Column(db.String(200), nullable=False)
 
     def __repr__(self):
         return f"<Usuario {self.nombre}>"
@@ -34,6 +36,72 @@ class Usuario(db.Model):
 # Crear la base de datos
 with app.app_context():
     db.create_all()
+
+
+# Ruta de registro
+@app.route("/registro", methods=["GET", "POST"])
+def registro():
+    error = None
+    if request.method == "POST":
+        nombre = request.form.get("nombre")
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        if not nombre or not email or not password:
+            error = "Por favor, complete todos los campos."
+        elif Usuario.query.filter_by(email=email).first():
+            error = "El correo ya está registrado."
+        else:
+            # encriptar la contraseña antes de guardarla
+            print("Password antes de hash:", password)
+            hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+            print("Password después de hash:", hashed_password)
+            nuevo_usuario = Usuario(
+                nombre=nombre, email=email, password=hashed_password
+            )
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            return redirect(url_for("login"))
+
+    return render_template("registro.html", error=error)
+
+
+# Ruta de login
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        if email == "" or password == "":
+            error = "Por favor, complete todos los campos."
+        else:
+            usuario = Usuario.query.filter_by(email=email).first()
+            if usuario and check_password_hash(usuario.password, password):
+                session["usuario_id"] = usuario.id
+                session["usuario_nombre"] = usuario.nombre
+                return redirect(url_for("panel"))
+            else:
+                error = "Credenciales inválidas. Intente de nuevo."
+
+    return render_template("login.html", error=error)
+
+
+# Ruta de panel
+@app.route("/panel", methods=["GET"])
+def panel():
+    if "usuario_id" in session:
+        usuario_nombre = session["usuario_nombre"]
+        return render_template("panel.html", usuario_nombre=usuario_nombre)
+    else:
+        return redirect(url_for("login"))
+
+
+@app.route("/logout", methods=["GET"])
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 
 # Ruta principal
@@ -109,25 +177,6 @@ def saludo():
     return render_template("saludo.html", nombre=nombre)
 
 
-# Ruta de login
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    error = None
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-
-        if username == "" or password == "":
-            error = "Por favor, complete todos los campos."
-        elif username != "admin" or password != "secret":
-            error = "Usuario o contraseña incorrectos."
-        else:
-            session["username"] = username
-            return redirect(url_for("bienvenida"))
-
-    return render_template("login.html", error=error)
-
-
 # Ruta de contacto
 @app.route("/contacto", methods=["GET", "POST"])
 def contacto():
@@ -139,21 +188,6 @@ def contacto():
         # Procesar los datos (no implementado)
         return render_template("confirmacion.html", nombre=nombre)
     return render_template("contacto.html")
-
-
-@app.route("/bienvenida", methods=["GET"])
-def bienvenida():
-    if "username" in session:
-        username = session["username"]
-        return render_template("bienvenida.html", username=username)
-    else:
-        return redirect(url_for("login"))
-
-
-@app.route("/logout", methods=["GET"])
-def logout():
-    session.pop("username", None)
-    return redirect(url_for("login"))
 
 
 @app.route("/tema", methods=["GET"])
