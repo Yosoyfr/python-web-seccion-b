@@ -9,7 +9,7 @@ class Usuario(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     edad = db.Column(db.Integer, nullable=True)
     password = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, server_default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     productos = db.relationship("Producto", backref="creador", lazy=True)
 
@@ -24,7 +24,7 @@ class Producto(db.Model):
     descripcion = db.Column(db.String(300), nullable=True)
     precio = db.Column(db.Float, nullable=False)
     stock = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, server_default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
 

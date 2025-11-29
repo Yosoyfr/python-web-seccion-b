@@ -18,7 +18,7 @@ def panel():
 
 # Ruta principal
 @main_bp.route("/", methods=["GET"])
-def home():
+def index():
     return render_template("index.html")
 
 
